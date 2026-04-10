@@ -34,7 +34,7 @@ const s = StyleSheet.create({
   metaValue: { fontWeight: 600, color: '#0f172a' },
   sectionTitle: { fontSize: 10, fontWeight: 600, color: BLUE, marginBottom: 6, marginTop: 12 },
   clientBlock: { marginBottom: 12, padding: 10, backgroundColor: LIGHT_GRAY, borderRadius: 4 },
-  clientLabel: { fontSize: 8, color: GRAY, fontStyle: 'italic' },
+  clientLabel: { fontSize: 8, color: GRAY },
   clientName: { fontSize: 11, fontWeight: 600, marginTop: 2 },
   clientDetail: { fontSize: 8, color: GRAY, marginTop: 1 },
   objectLine: { fontSize: 10, fontWeight: 500, marginBottom: 12 },
@@ -57,7 +57,7 @@ const s = StyleSheet.create({
   grandTotalValue: { fontSize: 11, fontWeight: 700, color: BLUE },
   notes: { marginTop: 15, fontSize: 8, color: GRAY, lineHeight: 1.5 },
   terms: { marginTop: 10, fontSize: 7, color: GRAY, lineHeight: 1.4 },
-  legalNote: { marginTop: 8, fontSize: 7, color: GRAY, fontStyle: 'italic' },
+  legalNote: { marginTop: 8, fontSize: 7, color: GRAY },
   footer: { position: 'absolute', bottom: 30, left: 50, right: 50, textAlign: 'center', fontSize: 7, color: GRAY },
 })
 
