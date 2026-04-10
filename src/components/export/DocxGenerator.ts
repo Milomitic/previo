@@ -78,7 +78,7 @@ export async function generateDocx(
   children.push(
     new Paragraph({
       children: [
-        text(`N.: ${quote.quoteNumber}    Data: ${formatDate(quote.createdAt)}    Validita: ${formatDate(quote.validUntil)}`, { size: 16, color: GRAY }),
+        text(`N.: ${quote.quoteNumber}    Data: ${formatDate(quote.createdAt)}    Validità: ${formatDate(quote.validUntil)}`, { size: 16, color: GRAY }),
       ],
     })
   )

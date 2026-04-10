@@ -15,17 +15,17 @@ const LEVELS: { id: ComplexityLevel; label: string; features: string[] }[] = [
   {
     id: 'base',
     label: 'Base',
-    features: ['Template standard', 'Funzionalita essenziali', 'Design responsivo', 'Contenuti base'],
+    features: ['Template standard', 'Funzionalità essenziali', 'Design responsivo', 'Contenuti base'],
   },
   {
     id: 'media',
     label: 'Media',
-    features: ['Design personalizzato', 'Funzionalita avanzate', 'Ottimizzazione performance', 'Integrazioni base'],
+    features: ['Design personalizzato', 'Funzionalità avanzate', 'Ottimizzazione performance', 'Integrazioni base'],
   },
   {
     id: 'avanzata',
     label: 'Avanzata',
-    features: ['Design su misura', 'Architettura custom', 'Funzionalita enterprise', 'Supporto prioritario'],
+    features: ['Design su misura', 'Architettura custom', 'Funzionalità enterprise', 'Supporto prioritario'],
   },
 ]
 
@@ -63,7 +63,7 @@ export function ComplexityStep() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold mb-1">Livello di complessita</h2>
+        <h2 className="text-xl font-semibold mb-1">Livello di complessità</h2>
         <p className="text-sm text-muted-foreground">
           Scegli il livello per <strong>{serviceType.label}</strong>
         </p>

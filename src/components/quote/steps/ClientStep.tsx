@@ -67,7 +67,7 @@ export function ClientStep() {
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="city">Citta</Label>
+          <Label htmlFor="city">Città</Label>
           <Input
             id="city"
             value={client.city}

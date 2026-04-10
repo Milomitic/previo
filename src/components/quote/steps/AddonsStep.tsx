@@ -19,7 +19,7 @@ export function AddonsStep() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold mb-1">Funzionalita aggiuntive</h2>
+        <h2 className="text-xl font-semibold mb-1">Funzionalità aggiuntive</h2>
         <p className="text-sm text-muted-foreground">
           Seleziona gli add-on da includere nel preventivo
         </p>

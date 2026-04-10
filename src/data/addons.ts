@@ -11,7 +11,7 @@ export const ADDONS: Addon[] = [
   {
     id: 'seo-advanced',
     label: 'SEO Avanzato',
-    description: 'Audit completo, strategia keyword, link building e reportistica',
+    description: 'Audit completo, strategia keyword, link building e reportistica avanzata',
     defaultPrice: 1500,
     applicableTo: ['website'],
   },

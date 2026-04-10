@@ -80,7 +80,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <Input value={settings.professional.address} onChange={(e) => updateProfessional({ address: e.target.value })} />
               </div>
               <div className="space-y-1">
-                <Label>Citta</Label>
+                <Label>Città</Label>
                 <Input value={settings.professional.city} onChange={(e) => updateProfessional({ city: e.target.value })} />
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -148,7 +148,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 />
               </div>
               <div className="space-y-1">
-                <Label>Validita preventivo (giorni)</Label>
+                <Label>Validità preventivo (giorni)</Label>
                 <Input
                   type="number"
                   value={settings.defaultValidityDays}

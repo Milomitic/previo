@@ -107,7 +107,7 @@ export function PdfQuoteDocument({ quote, settings, calc }: PdfDocumentProps) {
         <View style={s.metaRow}>
           <Text style={s.metaItem}>N.: <Text style={s.metaValue}>{quote.quoteNumber}</Text></Text>
           <Text style={s.metaItem}>Data: <Text style={s.metaValue}>{formatDate(quote.createdAt)}</Text></Text>
-          <Text style={s.metaItem}>Validita: <Text style={s.metaValue}>{formatDate(quote.validUntil)}</Text></Text>
+          <Text style={s.metaItem}>Validità: <Text style={s.metaValue}>{formatDate(quote.validUntil)}</Text></Text>
         </View>
 
         {/* Client */}

@@ -23,7 +23,7 @@ export function TimelineStep() {
       <div>
         <h2 className="text-xl font-semibold mb-1">Tempistiche e consulenza</h2>
         <p className="text-sm text-muted-foreground">
-          Scegli la modalita di consegna e le ore di consulenza previste
+          Scegli la modalità di consegna e le ore di consulenza previste
         </p>
       </div>
 
