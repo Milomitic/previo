@@ -1,73 +1,64 @@
-# React + TypeScript + Vite
+# Previo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Generatore di preventivi per professionisti IT freelance. SPA client-side che permette di configurare, visualizzare ed esportare preventivi professionali in PDF e DOCX.
 
-Currently, two official plugins are available:
+## Funzionalita
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Wizard 6 step** — Servizio, Configurazione, Add-on, Tempistiche, Cliente, Riepilogo
+- **Pricing granulare** — Costo base + pagine extra + materiale grafico + dominio/hosting + parametri custom
+- **Parametri dinamici** — Aggiungi voci personalizzate direttamente dall'interfaccia
+- **Regime prestazione occasionale** — Ritenuta d'acconto 20%, marca da bollo automatica (>77,47 EUR)
+- **Prezzo Amico** — Sconto preconfigurato per amici/conoscenti
+- **Google Custom Search API** — Suggerimenti prezzi basati sul mercato italiano
+- **Export PDF e DOCX** — Layout professionale con dati professionista, cliente, voci dettagliate e totali
+- **Settings persistenti** — Dati professionali, upload logo, prezzi default, termini e condizioni
+- **Dark mode** — Light, dark e system
+- **Responsive** — Mobile, tablet, desktop
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React + TypeScript + Vite
+- Tailwind CSS v4 + shadcn/ui
+- Zustand (state management con localStorage)
+- @react-pdf/renderer (generazione PDF)
+- docx + file-saver (generazione DOCX)
+- lucide-react (icone)
 
-## Expanding the ESLint configuration
+## Setup
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Per accedere da altri dispositivi sulla stessa rete:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npx vite --host
 ```
+
+## Struttura
+
+```
+src/
+  components/
+    export/       # Generazione PDF e DOCX
+    layout/       # AppShell, Header, Sidebar
+    quote/        # Wizard steps e componenti preventivo
+    settings/     # Dialog impostazioni
+    ui/           # Componenti shadcn/ui
+  data/           # Catalogo servizi, add-on, prezzi, termini
+  hooks/          # useQuoteCalculations, useDarkMode, useMediaQuery
+  stores/         # Zustand stores (quote, settings)
+  types/          # TypeScript interfaces
+  utils/          # Calcoli, formattazione, Google Search
+```
+
+## Regime fiscale
+
+L'app genera preventivi per **prestazione occasionale** (art. 2222 c.c.):
+
+- Nessuna Partita IVA
+- Operazione fuori campo IVA (art. 5 DPR 633/72)
+- Ritenuta d'acconto 20% opzionale (art. 25 DPR 600/73)
+- Marca da bollo 2 EUR per importi > 77,47 EUR
