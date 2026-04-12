@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Quote, LineItem, ClientData, CustomParam } from '@/types/quote'
+import type { Quote, LineItem, ClientData, QuotePhase, QuoteExtra, CustomExtra } from '@/types/quote'
 import { getServiceType } from '@/data/services'
+import { PHASES, OPTIONAL_EXTRAS } from '@/data/phases'
 import { ADDONS } from '@/data/addons'
 import { generateId } from '@/utils/idGenerator'
 import { formatQuoteNumber } from '@/utils/formatting'
@@ -10,10 +11,27 @@ import {
   DEFAULT_CONSULTING_HOURLY_RATE,
   DEFAULT_URGENCY_SURCHARGE_PERCENT,
   RITENUTA_ACCONTO_RATE,
-  DEFAULT_INCLUDED_PAGES,
-  DEFAULT_GRAPHICS_COST,
-  DEFAULT_DOMAIN_HOSTING_COST,
 } from '@/data/pricing'
+
+function createDefaultPhases(): QuotePhase[] {
+  return PHASES.map((p) => ({
+    phaseId: p.id,
+    enabled: true,
+    price: 0,
+    activities: p.activities.map((a) => ({
+      activityId: a.id,
+      enabled: true,
+    })),
+  }))
+}
+
+function createDefaultExtras(): QuoteExtra[] {
+  return OPTIONAL_EXTRAS.map((e) => ({
+    extraId: e.id,
+    enabled: false,
+    price: e.defaultPrice,
+  }))
+}
 
 function createEmptyClient(): ClientData {
   return {
@@ -46,10 +64,9 @@ function createNewQuote(prefix: string, num: number): Quote {
     validUntil: validUntil.toISOString(),
     status: 'draft',
     service: null,
-    pages: DEFAULT_INCLUDED_PAGES,
-    clientProvidesGraphics: true,
-    includeDomainHosting: false,
-    customParams: [],
+    phases: createDefaultPhases(),
+    extras: createDefaultExtras(),
+    customExtras: [],
     addons: [],
     timeline: { type: 'standard', surchargePercent: DEFAULT_URGENCY_SURCHARGE_PERCENT },
     consultingHours: 0,
@@ -68,21 +85,35 @@ interface QuoteStore {
 
   setStep: (step: number) => void
   setService: (categoryId: string, typeId: string) => void
-  setPages: (pages: number) => void
-  setGraphics: (clientProvides: boolean) => void
-  setDomainHosting: (include: boolean) => void
-  addCustomParam: (label: string, price: number) => void
-  toggleCustomParam: (id: string) => void
-  removeCustomParam: (id: string) => void
-  updateCustomParamPrice: (id: string, price: number) => void
+
+  // Phase management
+  togglePhase: (phaseId: string) => void
+  setPhasePrice: (phaseId: string, price: number) => void
+  toggleActivity: (phaseId: string, activityId: string) => void
+
+  // Extras
+  toggleExtra: (extraId: string) => void
+  setExtraPrice: (extraId: string, price: number) => void
+  addCustomExtra: (label: string, price: number) => void
+  toggleCustomExtra: (id: string) => void
+  removeCustomExtra: (id: string) => void
+  setCustomExtraPrice: (id: string, price: number) => void
+
+  // Legacy
   toggleAddon: (addonId: string) => void
   setTimeline: (type: 'standard' | 'urgente') => void
   setConsultingHours: (hours: number) => void
+
+  // Line items
   updateLineItem: (id: string, changes: Partial<LineItem>) => void
   addCustomLineItem: (description: string, unitPrice: number) => void
   removeLineItem: (id: string) => void
+
+  // Financial
   setDiscount: (enabled: boolean, percentage: number, isFriendPrice: boolean) => void
   setRitenutaAcconto: (enabled: boolean) => void
+
+  // Client & meta
   setClient: (data: Partial<ClientData>) => void
   setNotes: (notes: string) => void
   setTerms: (terms: string) => void
@@ -99,60 +130,83 @@ export const useQuoteStore = create<QuoteStore>()(
 
       setService: (categoryId, typeId) =>
         set((state) => {
-          const serviceType = getServiceType(categoryId, typeId)
-          const pages = serviceType ? serviceType.includedPages : state.quote.pages
-          const quote = { ...state.quote, service: { categoryId, typeId }, pages }
+          const quote = { ...state.quote, service: { categoryId, typeId } }
           return { quote: rebuildItems(quote) }
         }),
 
-      setPages: (pages) =>
+      togglePhase: (phaseId) =>
         set((state) => {
-          const quote = { ...state.quote, pages: Math.max(0, pages) }
-          return { quote: rebuildItems(quote) }
-        }),
-
-      setGraphics: (clientProvides) =>
-        set((state) => {
-          const quote = { ...state.quote, clientProvidesGraphics: clientProvides }
-          return { quote: rebuildItems(quote) }
-        }),
-
-      setDomainHosting: (include) =>
-        set((state) => {
-          const quote = { ...state.quote, includeDomainHosting: include }
-          return { quote: rebuildItems(quote) }
-        }),
-
-      addCustomParam: (label, price) =>
-        set((state) => {
-          const param: CustomParam = { id: generateId(), label, enabled: true, price }
-          const quote = { ...state.quote, customParams: [...state.quote.customParams, param] }
-          return { quote: rebuildItems(quote) }
-        }),
-
-      toggleCustomParam: (id) =>
-        set((state) => {
-          const customParams = state.quote.customParams.map((p) =>
-            p.id === id ? { ...p, enabled: !p.enabled } : p
+          const phases = state.quote.phases.map((p) =>
+            p.phaseId === phaseId ? { ...p, enabled: !p.enabled } : p
           )
-          const quote = { ...state.quote, customParams }
-          return { quote: rebuildItems(quote) }
+          return { quote: rebuildItems({ ...state.quote, phases }) }
         }),
 
-      removeCustomParam: (id) =>
+      setPhasePrice: (phaseId, price) =>
         set((state) => {
-          const customParams = state.quote.customParams.filter((p) => p.id !== id)
-          const quote = { ...state.quote, customParams }
-          return { quote: rebuildItems(quote) }
-        }),
-
-      updateCustomParamPrice: (id, price) =>
-        set((state) => {
-          const customParams = state.quote.customParams.map((p) =>
-            p.id === id ? { ...p, price } : p
+          const phases = state.quote.phases.map((p) =>
+            p.phaseId === phaseId ? { ...p, price } : p
           )
-          const quote = { ...state.quote, customParams }
+          return { quote: rebuildItems({ ...state.quote, phases }) }
+        }),
+
+      toggleActivity: (phaseId, activityId) =>
+        set((state) => {
+          const phases = state.quote.phases.map((p) => {
+            if (p.phaseId !== phaseId) return p
+            return {
+              ...p,
+              activities: p.activities.map((a) =>
+                a.activityId === activityId ? { ...a, enabled: !a.enabled } : a
+              ),
+            }
+          })
+          return { quote: rebuildItems({ ...state.quote, phases }) }
+        }),
+
+      toggleExtra: (extraId) =>
+        set((state) => {
+          const extras = state.quote.extras.map((e) =>
+            e.extraId === extraId ? { ...e, enabled: !e.enabled } : e
+          )
+          return { quote: rebuildItems({ ...state.quote, extras }) }
+        }),
+
+      setExtraPrice: (extraId, price) =>
+        set((state) => {
+          const extras = state.quote.extras.map((e) =>
+            e.extraId === extraId ? { ...e, price } : e
+          )
+          return { quote: rebuildItems({ ...state.quote, extras }) }
+        }),
+
+      addCustomExtra: (label, price) =>
+        set((state) => {
+          const extra: CustomExtra = { id: generateId(), label, enabled: true, price }
+          const quote = { ...state.quote, customExtras: [...state.quote.customExtras, extra] }
           return { quote: rebuildItems(quote) }
+        }),
+
+      toggleCustomExtra: (id) =>
+        set((state) => {
+          const customExtras = state.quote.customExtras.map((e) =>
+            e.id === id ? { ...e, enabled: !e.enabled } : e
+          )
+          return { quote: rebuildItems({ ...state.quote, customExtras }) }
+        }),
+
+      removeCustomExtra: (id) =>
+        set((state) => {
+          const customExtras = state.quote.customExtras.filter((e) => e.id !== id)
+          return { quote: rebuildItems({ ...state.quote, customExtras }) }
+        }),
+
+      setCustomExtraPrice: (id, price) =>
+        set((state) => {
+          const customExtras = state.quote.customExtras.map((e) =>
+            e.id === id ? { ...e, price } : e
+          )
+          return { quote: rebuildItems({ ...state.quote, customExtras }) }
         }),
 
       toggleAddon: (addonId) =>
@@ -160,8 +214,7 @@ export const useQuoteStore = create<QuoteStore>()(
           const addons = state.quote.addons.includes(addonId)
             ? state.quote.addons.filter((id) => id !== addonId)
             : [...state.quote.addons, addonId]
-          const quote = { ...state.quote, addons }
-          return { quote: rebuildItems(quote) }
+          return { quote: rebuildItems({ ...state.quote, addons }) }
         }),
 
       setTimeline: (type) =>
@@ -191,14 +244,7 @@ export const useQuoteStore = create<QuoteStore>()(
             ...state.quote,
             lineItems: [
               ...state.quote.lineItems,
-              {
-                id: generateId(),
-                description,
-                quantity: 1,
-                unitPrice,
-                category: 'custom' as const,
-                isEditable: true,
-              },
+              { id: generateId(), description, quantity: 1, unitPrice, category: 'custom' as const, isEditable: true },
             ],
           },
         })),
@@ -229,14 +275,9 @@ export const useQuoteStore = create<QuoteStore>()(
           quote: { ...state.quote, client: { ...state.quote.client, ...data } },
         })),
 
-      setNotes: (notes) =>
-        set((state) => ({ quote: { ...state.quote, notes } })),
-
-      setTerms: (terms) =>
-        set((state) => ({ quote: { ...state.quote, termsAndConditions: terms } })),
-
-      resetQuote: (prefix, num) =>
-        set({ quote: createNewQuote(prefix, num), currentStep: 0 }),
+      setNotes: (notes) => set((state) => ({ quote: { ...state.quote, notes } })),
+      setTerms: (terms) => set((state) => ({ quote: { ...state.quote, termsAndConditions: terms } })),
+      resetQuote: (prefix, num) => set({ quote: createNewQuote(prefix, num), currentStep: 0 }),
     }),
     { name: 'previo-quote' }
   )
@@ -245,86 +286,71 @@ export const useQuoteStore = create<QuoteStore>()(
 function rebuildItems(quote: Quote): Quote {
   const items: LineItem[] = []
 
-  if (quote.service) {
-    const serviceType = getServiceType(quote.service.categoryId, quote.service.typeId)
-    if (serviceType) {
-      // Base service
-      items.push({
-        id: `svc-${quote.service.typeId}`,
-        description: `${serviceType.label} (base, ${serviceType.includedPages} pagine incluse)`,
-        quantity: 1,
-        unitPrice: serviceType.basePrice,
-        category: 'service',
-        isEditable: true,
-      })
+  // Phases — each enabled phase becomes a line item with its activities listed
+  for (const phase of quote.phases) {
+    if (!phase.enabled) continue
+    const phaseTemplate = PHASES.find((p) => p.id === phase.phaseId)
+    if (!phaseTemplate) continue
 
-      // Extra pages
-      const extraPages = Math.max(0, quote.pages - serviceType.includedPages)
-      if (extraPages > 0 && serviceType.pricePerExtraPage > 0) {
-        items.push({
-          id: 'extra-pages',
-          description: 'Pagine aggiuntive',
-          quantity: extraPages,
-          unitPrice: serviceType.pricePerExtraPage,
-          category: 'config',
-          isEditable: true,
-        })
-      }
-    }
-  }
+    const enabledActivities = phase.activities
+      .filter((a) => a.enabled)
+      .map((a) => phaseTemplate.activities.find((at) => at.id === a.activityId)?.label)
+      .filter(Boolean)
 
-  // Graphics
-  if (!quote.clientProvidesGraphics) {
+    if (enabledActivities.length === 0) continue
+
     items.push({
-      id: 'graphics',
-      description: 'Realizzazione materiale grafico',
+      id: `phase-${phase.phaseId}`,
+      description: phaseTemplate.commercialLabel,
       quantity: 1,
-      unitPrice: DEFAULT_GRAPHICS_COST,
-      category: 'config',
+      unitPrice: phase.price,
+      category: 'phase',
+      phaseId: phase.phaseId,
       isEditable: true,
     })
   }
 
-  // Domain & hosting
-  if (quote.includeDomainHosting) {
+  // Extras
+  for (const extra of quote.extras) {
+    if (!extra.enabled) continue
+    const template = OPTIONAL_EXTRAS.find((e) => e.id === extra.extraId)
+    if (!template) continue
     items.push({
-      id: 'domain-hosting',
-      description: 'Dominio e hosting (annuale)',
+      id: `extra-${extra.extraId}`,
+      description: template.label,
       quantity: 1,
-      unitPrice: DEFAULT_DOMAIN_HOSTING_COST,
-      category: 'config',
+      unitPrice: extra.price,
+      category: 'extra',
       isEditable: true,
     })
   }
 
-  // Custom params
-  for (const param of quote.customParams) {
-    if (param.enabled) {
-      items.push({
-        id: `param-${param.id}`,
-        description: param.label,
-        quantity: 1,
-        unitPrice: param.price,
-        category: 'config',
-        isEditable: true,
-      })
-    }
+  // Custom extras
+  for (const extra of quote.customExtras) {
+    if (!extra.enabled) continue
+    items.push({
+      id: `cextra-${extra.id}`,
+      description: extra.label,
+      quantity: 1,
+      unitPrice: extra.price,
+      category: 'extra',
+      isEditable: true,
+    })
   }
 
-  // Addons
+  // Legacy addons
   for (const addonId of quote.addons) {
     const addon = ADDONS.find((a) => a.id === addonId)
-    if (addon) {
-      const existing = quote.lineItems.find((li) => li.id === `addon-${addonId}`)
-      items.push({
-        id: `addon-${addonId}`,
-        description: addon.label,
-        quantity: 1,
-        unitPrice: existing?.unitPrice ?? addon.defaultPrice,
-        category: 'addon',
-        isEditable: true,
-      })
-    }
+    if (!addon) continue
+    const existing = quote.lineItems.find((li) => li.id === `addon-${addonId}`)
+    items.push({
+      id: `addon-${addonId}`,
+      description: addon.label,
+      quantity: 1,
+      unitPrice: existing?.unitPrice ?? addon.defaultPrice,
+      category: 'addon',
+      isEditable: true,
+    })
   }
 
   // Consulting
@@ -340,7 +366,7 @@ function rebuildItems(quote: Quote): Quote {
     })
   }
 
-  // Keep custom line items
+  // Custom line items
   const customItems = quote.lineItems.filter((li) => li.category === 'custom')
   items.push(...customItems)
 

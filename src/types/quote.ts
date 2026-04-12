@@ -6,10 +6,13 @@ export interface Quote {
   status: 'draft' | 'final'
 
   service: ServiceSelection | null
-  pages: number
-  clientProvidesGraphics: boolean
-  includeDomainHosting: boolean
-  customParams: CustomParam[]
+
+  // Phase-based configuration
+  phases: QuotePhase[]
+  extras: QuoteExtra[]
+  customExtras: CustomExtra[]
+
+  // Legacy fields kept for non-website services
   addons: string[]
   timeline: TimelineSelection
   consultingHours: number
@@ -29,7 +32,25 @@ export interface ServiceSelection {
   typeId: string
 }
 
-export interface CustomParam {
+export interface QuotePhase {
+  phaseId: string
+  enabled: boolean
+  price: number
+  activities: QuoteActivity[]
+}
+
+export interface QuoteActivity {
+  activityId: string
+  enabled: boolean
+}
+
+export interface QuoteExtra {
+  extraId: string
+  enabled: boolean
+  price: number
+}
+
+export interface CustomExtra {
   id: string
   label: string
   enabled: boolean
@@ -46,7 +67,8 @@ export interface LineItem {
   description: string
   quantity: number
   unitPrice: number
-  category: 'service' | 'addon' | 'consulting' | 'config' | 'custom'
+  category: 'phase' | 'extra' | 'addon' | 'consulting' | 'custom'
+  phaseId?: string
   isEditable: boolean
 }
 

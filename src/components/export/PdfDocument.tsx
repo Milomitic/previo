@@ -4,6 +4,7 @@ import type { AppSettings } from '@/types/settings'
 import type { QuoteCalculation } from '@/utils/calculations'
 import { formatCurrency, formatDate } from '@/utils/formatting'
 import { getServiceType } from '@/data/services'
+import { PHASES } from '@/data/phases'
 
 Font.register({
   family: 'Inter',
@@ -24,31 +25,35 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   logo: { width: 50, height: 50, objectFit: 'contain' },
-  headerRight: { textAlign: 'right' },
   profName: { fontSize: 14, fontWeight: 700, color: BLUE },
   profDetail: { fontSize: 8, color: GRAY, marginTop: 1 },
+  headerRight: { textAlign: 'right' },
   divider: { height: 1, backgroundColor: BLUE, marginVertical: 12 },
   title: { fontSize: 18, fontWeight: 700, color: BLUE, marginBottom: 4 },
   metaRow: { flexDirection: 'row', gap: 30, marginBottom: 15 },
   metaItem: { fontSize: 8, color: GRAY },
   metaValue: { fontWeight: 600, color: '#0f172a' },
-  sectionTitle: { fontSize: 10, fontWeight: 600, color: BLUE, marginBottom: 6, marginTop: 12 },
+  sectionTitle: { fontSize: 10, fontWeight: 600, color: BLUE, marginBottom: 6, marginTop: 14 },
   clientBlock: { marginBottom: 12, padding: 10, backgroundColor: LIGHT_GRAY, borderRadius: 4 },
   clientLabel: { fontSize: 8, color: GRAY },
   clientName: { fontSize: 11, fontWeight: 600, marginTop: 2 },
   clientDetail: { fontSize: 8, color: GRAY, marginTop: 1 },
   objectLine: { fontSize: 10, fontWeight: 500, marginBottom: 12 },
-  table: { marginTop: 4 },
-  tableHeader: { flexDirection: 'row', backgroundColor: BLUE, borderRadius: 2, paddingVertical: 5, paddingHorizontal: 6 },
-  tableHeaderCell: { color: '#ffffff', fontSize: 8, fontWeight: 600 },
-  tableRow: { flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: '#e2e8f0' },
-  tableRowAlt: { backgroundColor: '#f8fafc' },
-  tableCell: { fontSize: 8 },
-  colDesc: { flex: 1 },
-  colQty: { width: 40, textAlign: 'right' },
-  colPrice: { width: 70, textAlign: 'right' },
-  colTotal: { width: 70, textAlign: 'right' },
-  totalsBlock: { marginTop: 8, alignItems: 'flex-end' },
+  // Phase-based table
+  phaseBlock: { marginBottom: 8 },
+  phaseHeader: { flexDirection: 'row', backgroundColor: BLUE, borderRadius: 2, paddingVertical: 4, paddingHorizontal: 6, justifyContent: 'space-between' },
+  phaseTitle: { color: '#ffffff', fontSize: 9, fontWeight: 600 },
+  phasePrice: { color: '#ffffff', fontSize: 9, fontWeight: 600 },
+  phaseDesc: { fontSize: 7, color: GRAY, paddingHorizontal: 6, paddingTop: 3, paddingBottom: 2 },
+  activityRow: { flexDirection: 'row', paddingVertical: 2, paddingHorizontal: 6 },
+  activityBullet: { fontSize: 7, color: GRAY, width: 8 },
+  activityLabel: { fontSize: 7, color: '#333' },
+  // Extras table
+  extraRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: '#e2e8f0' },
+  extraLabel: { fontSize: 8 },
+  extraPrice: { fontSize: 8, fontWeight: 500 },
+  // Totals
+  totalsBlock: { marginTop: 10, alignItems: 'flex-end' },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', width: 220, paddingVertical: 2 },
   totalLabel: { fontSize: 8, color: GRAY },
   totalValue: { fontSize: 8, fontWeight: 500 },
@@ -71,6 +76,9 @@ export function PdfQuoteDocument({ quote, settings, calc }: PdfDocumentProps) {
   const serviceType = quote.service
     ? getServiceType(quote.service.categoryId, quote.service.typeId)
     : null
+
+  const phaseItems = quote.lineItems.filter((li) => li.category === 'phase')
+  const extraItems = quote.lineItems.filter((li) => li.category === 'extra' || li.category === 'addon' || li.category === 'consulting' || li.category === 'custom')
 
   return (
     <Document>
@@ -96,13 +104,11 @@ export function PdfQuoteDocument({ quote, settings, calc }: PdfDocumentProps) {
             {settings.professional.codiceFiscale && <Text style={s.profDetail}>C.F.: {settings.professional.codiceFiscale}</Text>}
             {settings.professional.email && <Text style={s.profDetail}>{settings.professional.email}</Text>}
             {settings.professional.phone && <Text style={s.profDetail}>Tel: {settings.professional.phone}</Text>}
-            {settings.professional.pec && <Text style={s.profDetail}>PEC: {settings.professional.pec}</Text>}
           </View>
         </View>
 
         <View style={s.divider} />
 
-        {/* Title */}
         <Text style={s.title}>PREVENTIVO</Text>
         <View style={s.metaRow}>
           <Text style={s.metaItem}>N.: <Text style={s.metaValue}>{quote.quoteNumber}</Text></Text>
@@ -116,39 +122,64 @@ export function PdfQuoteDocument({ quote, settings, calc }: PdfDocumentProps) {
           <Text style={s.clientName}>{quote.client.name || '---'}</Text>
           {quote.client.address && <Text style={s.clientDetail}>{quote.client.address}</Text>}
           {quote.client.city && (
-            <Text style={s.clientDetail}>
-              {quote.client.cap} {quote.client.city} ({quote.client.province})
-            </Text>
+            <Text style={s.clientDetail}>{quote.client.cap} {quote.client.city} ({quote.client.province})</Text>
           )}
           {quote.client.partitaIva && <Text style={s.clientDetail}>P.IVA: {quote.client.partitaIva}</Text>}
           {quote.client.codiceFiscale && <Text style={s.clientDetail}>C.F.: {quote.client.codiceFiscale}</Text>}
           {quote.client.email && <Text style={s.clientDetail}>{quote.client.email}</Text>}
         </View>
 
-        {/* Object */}
         {serviceType && (
-          <Text style={s.objectLine}>
-            Oggetto: {serviceType.label} — {quote.pages} pagine
-          </Text>
+          <Text style={s.objectLine}>Oggetto: {serviceType.label}</Text>
         )}
 
-        {/* Items table */}
-        <View style={s.table}>
-          <View style={s.tableHeader}>
-            <Text style={[s.tableHeaderCell, s.colDesc]}>Descrizione</Text>
-            <Text style={[s.tableHeaderCell, s.colQty]}>Qty</Text>
-            <Text style={[s.tableHeaderCell, s.colPrice]}>Prezzo Unit.</Text>
-            <Text style={[s.tableHeaderCell, s.colTotal]}>Importo</Text>
-          </View>
-          {quote.lineItems.map((item, i) => (
-            <View key={item.id} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
-              <Text style={[s.tableCell, s.colDesc]}>{item.description}</Text>
-              <Text style={[s.tableCell, s.colQty]}>{item.quantity}</Text>
-              <Text style={[s.tableCell, s.colPrice]}>{formatCurrency(item.unitPrice)}</Text>
-              <Text style={[s.tableCell, s.colTotal]}>{formatCurrency(item.quantity * item.unitPrice)}</Text>
-            </View>
-          ))}
-        </View>
+        {/* Phase-based items */}
+        {phaseItems.length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>Attività incluse</Text>
+            {phaseItems.map((item) => {
+              const phaseTemplate = PHASES.find((p) => p.id === item.phaseId)
+              const quotePhase = quote.phases.find((p) => p.phaseId === item.phaseId)
+              const enabledActivities = quotePhase?.activities
+                .filter((a) => a.enabled)
+                .map((a) => phaseTemplate?.activities.find((at) => at.id === a.activityId)?.label)
+                .filter(Boolean) || []
+
+              return (
+                <View key={item.id} style={s.phaseBlock}>
+                  <View style={s.phaseHeader}>
+                    <Text style={s.phaseTitle}>{item.description}</Text>
+                    <Text style={s.phasePrice}>{formatCurrency(item.unitPrice)}</Text>
+                  </View>
+                  {phaseTemplate && (
+                    <Text style={s.phaseDesc}>{phaseTemplate.description}</Text>
+                  )}
+                  {enabledActivities.map((activity, i) => (
+                    <View key={i} style={s.activityRow}>
+                      <Text style={s.activityBullet}>•</Text>
+                      <Text style={s.activityLabel}>{activity}</Text>
+                    </View>
+                  ))}
+                </View>
+              )
+            })}
+          </>
+        )}
+
+        {/* Extra items */}
+        {extraItems.length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>Extra opzionali</Text>
+            {extraItems.map((item) => (
+              <View key={item.id} style={s.extraRow}>
+                <Text style={s.extraLabel}>
+                  {item.description}{item.quantity > 1 ? ` (x${item.quantity})` : ''}
+                </Text>
+                <Text style={s.extraPrice}>{formatCurrency(item.quantity * item.unitPrice)}</Text>
+              </View>
+            ))}
+          </>
+        )}
 
         {/* Totals */}
         <View style={s.totalsBlock}>
@@ -192,7 +223,6 @@ export function PdfQuoteDocument({ quote, settings, calc }: PdfDocumentProps) {
           </View>
         </View>
 
-        {/* Notes */}
         {quote.notes && (
           <>
             <Text style={s.sectionTitle}>Note</Text>
@@ -200,15 +230,13 @@ export function PdfQuoteDocument({ quote, settings, calc }: PdfDocumentProps) {
           </>
         )}
 
-        {/* Legal notes */}
         <Text style={s.legalNote}>
           Prestazione occasionale ai sensi dell'art. 2222 e seguenti del Codice Civile.
           Operazione fuori campo IVA ai sensi dell'art. 5 DPR 633/72.
-          {quote.taxConfig.ritenutaAcconto && ' Ritenuta d\'acconto 20% ai sensi dell\'art. 25 DPR 600/73.'}
-          {calc.marcaDaBollo > 0 && ' Imposta di bollo assolta sull\'originale - 2,00 EUR.'}
+          {quote.taxConfig.ritenutaAcconto && " Ritenuta d'acconto 20% ai sensi dell'art. 25 DPR 600/73."}
+          {calc.marcaDaBollo > 0 && " Imposta di bollo assolta sull'originale - 2,00 EUR."}
         </Text>
 
-        {/* Terms */}
         {quote.termsAndConditions && (
           <>
             <Text style={s.sectionTitle}>Termini e Condizioni</Text>
@@ -216,7 +244,6 @@ export function PdfQuoteDocument({ quote, settings, calc }: PdfDocumentProps) {
           </>
         )}
 
-        {/* Footer */}
         <Text style={s.footer}>
           {settings.professional.name}
           {settings.professional.codiceFiscale ? ` — C.F.: ${settings.professional.codiceFiscale}` : ''}
