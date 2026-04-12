@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
-import { Footer } from './Footer'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 interface AppShellProps {
@@ -20,7 +19,7 @@ export function AppShell({ children, onSettingsClick }: AppShellProps) {
       <div className="flex flex-1">
         {/* Desktop sidebar */}
         {isDesktop && (
-          <aside className="w-56 shrink-0 border-r bg-card/50">
+          <aside className="w-60 shrink-0 border-r bg-card/50">
             <Sidebar onSettingsClick={onSettingsClick} />
           </aside>
         )}
@@ -32,7 +31,7 @@ export function AppShell({ children, onSettingsClick }: AppShellProps) {
               className="fixed inset-0 z-40 bg-black/50"
               onClick={() => setSidebarOpen(false)}
             />
-            <aside className="fixed left-0 top-12 bottom-0 z-50 w-60 bg-background border-r shadow-lg">
+            <aside className="fixed left-0 top-14 bottom-0 z-50 w-64 bg-background border-r shadow-lg">
               <Sidebar
                 onSettingsClick={() => {
                   setSidebarOpen(false)
@@ -51,8 +50,6 @@ export function AppShell({ children, onSettingsClick }: AppShellProps) {
           </div>
         </main>
       </div>
-
-      <Footer />
     </div>
   )
 }
